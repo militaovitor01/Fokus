@@ -5,26 +5,32 @@ const botaoDescansoLongo = document.querySelector('.app__card-button--longo')
 const imagem = document.querySelector('.app__image')
 const titulo = document.querySelector('.app__title')
 const listaBotoes = document.querySelectorAll('.app__card-button')
+const temporizadorTela = document.querySelector('#timer')
 const musicaFocoInput = document.querySelector('#alternar-musica')
 const musica = new Audio('/sons/luna-rise-part-one.mp3')
 const botaoStartPause = document.querySelector('#start-pause')
+const botaoStartPauseSpan = document.querySelector('#start-pause span')
+const botaoStartPauseImagem = document.querySelector('#start-pause img')
 const somFinalizado = new Audio('/sons/beep.mp3')
 const playSom = new Audio('/sons/play.wav')
 const pauseSom = new Audio('/sons/pause.mp3')
-let tempoDecorridoSegundos = 5
+let tempoDecorridoSegundos = 1500
 let intervaloId = null
 
 botaoFoco.addEventListener('click', () =>{
+    tempoDecorridoSegundos = 1500
     alterarContexto('foco')
     botaoFoco.classList.add('active')
 })
 
 botaoDescansoCurto.addEventListener('click', () =>{
+    tempoDecorridoSegundos = 300
     alterarContexto('descanso-curto')
     botaoDescansoCurto.classList.add('active')
 })
 
 botaoDescansoLongo.addEventListener('click', () =>{
+    tempoDecorridoSegundos = 900
     alterarContexto('descanso-longo')
     botaoDescansoLongo.classList.add('active')
 })
@@ -39,6 +45,7 @@ musicaFocoInput.addEventListener('change', () =>{
 })
 
 function alterarContexto(contexto) {
+    mostrarTempo()
     listaBotoes.forEach(function(contexto){
         contexto.classList.remove('active')
     })
@@ -71,13 +78,14 @@ function alterarContexto(contexto) {
 
 const contagemRegressiva = () => {
     if (tempoDecorridoSegundos <= 0){
-        finalizarContagem()
         somFinalizado.play()
+        alert('Tempo finalizado!')
+        finalizarContagem()
         return
     }
     
     tempoDecorridoSegundos -= 1
-    console.log('Temporizador: ' + tempoDecorridoSegundos)
+    mostrarTempo()
 }
 
 botaoStartPause.addEventListener('click', iniciarOuPausarContagem)
@@ -91,9 +99,21 @@ function iniciarOuPausarContagem() {
 
     playSom.play()
     intervaloId = setInterval(contagemRegressiva, 1000)
+    botaoStartPauseSpan.textContent = "Pausar"
+    botaoStartPauseImagem.setAttribute('src', '/imagens/pause.png')
 }
 
 function finalizarContagem(){
     clearInterval(intervaloId)
+    botaoStartPauseSpan.textContent = "Começar"
+    botaoStartPauseImagem.setAttribute('src', '/imagens/play_arrow.png')
     intervaloId = null
 }
+
+function mostrarTempo() {
+    const tempo = new Date(tempoDecorridoSegundos * 1000)
+    const tempoFormatado = tempo.toLocaleTimeString('pt-Br', {minute: '2-digit', second: '2-digit'})
+    temporizadorTela.innerHTML = `${tempoFormatado}`
+}
+
+mostrarTempo() 
