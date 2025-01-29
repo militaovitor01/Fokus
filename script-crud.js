@@ -2,7 +2,16 @@ const botaoAdicionarTarefa = document.querySelector('.app__button--add-task')
 const formAdicionarTarefa = document.querySelector('.app__form-add-task')
 const textarea = document.querySelector('.app__form-textarea')
 const ulTarefas = document.querySelector('.app__section-task-list')
-const tarefas = JSON.parse(localStorage.getItem('tarefas')) || []
+let tarefas = JSON.parse(localStorage.getItem('tarefas')) || []
+const paragrafoDescricaoTarefa = document.querySelector(".app__section-active-task-description")
+const botaoRemoverConcluidas = document.querySelector('#btn-remover-concluidas')
+const botaoRemoverTodas = document.querySelector('#btn-remover-todas')
+let tarefaSelecionada = null
+let liTarefaSelecionada = null
+
+function atualizarTarefas() {
+    localStorage.setItem('tarefas', JSON.stringify(tarefas))
+}
 
 function criarElementoTarefa(tarefa) {
     const li = document.createElement('li')
@@ -23,6 +32,17 @@ function criarElementoTarefa(tarefa) {
     const button = document.createElement('button')
     button.classList.add('app_button-edit')
 
+    button.onclick = () => {
+        // debugger - ferramenta que auxilia na depuração do código linha a linha
+        const novaDescricao = prompt("Qual o novo nome da tarefa?")
+
+        if (novaDescricao) {
+            p.textContent = novaDescricao
+            tarefa.descricao = novaDescricao
+            atualizarTarefas()
+        }  
+    }
+
     const imagemBotao = document.createElement('img')
     imagemBotao.setAttribute('src','/imagens/edit.png')
     button.append(imagemBotao)
@@ -30,6 +50,31 @@ function criarElementoTarefa(tarefa) {
     li.append(svg)
     li.append(p)
     li.append(button)
+
+    if(tarefa.completa) {
+        li.classList.add('app__section-task-list-item-complete')
+        button.setAttribute('disabled', 'disabled')
+    }else {
+        li.onclick = () => {
+            document.querySelectorAll('.app__section-task-list-item-active')
+                .forEach(elemento =>{
+                    elemento.classList.remove('app__section-task-list-item-active')
+                })
+    
+                if(tarefaSelecionada == tarefa) {
+                    paragrafoDescricaoTarefa.textContent = ''
+                    tarefaSelecionada = null
+                    liTarefaSelecionada = null
+                    return
+                }
+    
+                tarefaSelecionada = tarefa
+                liTarefaSelecionada = li
+                paragrafoDescricaoTarefa.textContent = tarefa.descricao
+    
+            li.classList.add('app__section-task-list-item-active')
+        }
+    }
 
     return li
 }
@@ -48,7 +93,7 @@ formAdicionarTarefa.addEventListener('submit', (evento)=>{
     tarefas.push(tarefa)
     const elementoTarefa = criarElementoTarefa(tarefa)
     ulTarefas.append(elementoTarefa)
-    localStorage.setItem('tarefas', JSON.stringify(tarefas))
+    atualizarTarefas()
     textarea.value = ''
     formAdicionarTarefa.classList.add('hidden')
 })
@@ -57,3 +102,29 @@ tarefas.forEach(tarefa => {
     const elementoTarefa = criarElementoTarefa(tarefa)
     ulTarefas.append(elementoTarefa)
 });
+
+document.addEventListener('FocoFinalizado', () => {
+    if(tarefaSelecionada && liTarefaSelecionada) {
+        liTarefaSelecionada.classList.remove('app__section-task-list-item-active')
+        liTarefaSelecionada.classList.add('app__section-task-list-item-complete')
+        liTarefaSelecionada.querySelector('button').setAttribute('disabled', 'disabled')
+        tarefaSelecionada.completa = true
+        atualizarTarefas()
+    }
+}) 
+
+const removerTarefas = (somenteCompletas) => {
+    const seletor = somenteCompletas?".app__section-task-list-item-complete": ".app__section-task-list-item"
+
+    //Apaga visualmente
+    document.querySelectorAll(seletor).forEach(elemento => {
+        elemento.remove()
+    })
+
+    //Apaga do localStorage
+    tarefas = somenteCompletas? tarefas.filter(tarefa => !tarefa.completa):[]
+    atualizarTarefas()
+}
+
+botaoRemoverConcluidas.onclick = () => removerTarefas(true)
+botaoRemoverTodas.onclick = () => removerTarefas(false)

@@ -14,7 +14,7 @@ const botaoStartPauseImagem = document.querySelector('#start-pause img')
 const somFinalizado = new Audio('/sons/beep.mp3')
 const playSom = new Audio('/sons/play.wav')
 const pauseSom = new Audio('/sons/pause.mp3')
-let tempoDecorridoSegundos = 1500
+let tempoDecorridoSegundos = 10
 let intervaloId = null
 
 botaoFoco.addEventListener('click', () =>{
@@ -80,6 +80,13 @@ const contagemRegressiva = () => {
     if (tempoDecorridoSegundos <= 0){
         somFinalizado.play()
         alert('Tempo finalizado!')
+        const focoAtivo = html.getAttribute('data-contexto')
+
+        if(focoAtivo) {
+            const evento = new CustomEvent('FocoFinalizado')
+            document.dispatchEvent(evento)
+        }
+        
         finalizarContagem()
         return
     }
